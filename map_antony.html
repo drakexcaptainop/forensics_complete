@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        /* Ensure the map container has a height */
+        #map {
+            height: 1080px; /* Set the height of the map */
+        }
+    </style>
+</head>
+<body>
+    <!-- Add a div with id="map" for the map container -->
+    <a href="map_full_cameras.html">Camaras</a>
+    <a href="map_full_no_cameras.html">No Camaras</a>
+    <a href="map_antony.html">Antony</a>
+    <a href="map_agustin.html">Agustin</a>
+    <a href="map_andrea.html">Andrea</a>
+    <div id="map"></div>
+    <script>
+        const geojsonpath = "./forensics-master/antony_zeballos.geojson"; // Ensure the file is in the same directory
+
+        // Initialize the map
+        const map = L.map('map').setView([0, 0], 2); // Default center and zoom level
+
+        // Add a tile layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Fetch and display the GeoJSON file
+        fetch(geojsonpath)
+            .then(response => response.json())
+            .then(data => {
+                // Add GeoJSON layer to the map
+                L.geoJSON(data, {
+                    style: feature => ({
+                        color: feature.properties.color || "blue", // Default color
+                        fillColor: feature.properties.fill || "blue", // Default fill color
+                        fillOpacity: feature.properties["fill-opacity"] || 0.6 // Default fill opacity
+                    }),
+                    onEachFeature: (feature, layer) => {
+                        // Add tooltips if "name" or "tooltip" property exists
+                        if (feature.properties) {
+                            console.log(feature.properties); // Log properties for debugging
+                            const tooltip = feature.properties.name || feature.properties.tooltip;
+                            layer.bindTooltip(tooltip || "asds", { sticky: true }); // Ensure tooltips stick to the cursor
+                        }
+                    }
+                }).addTo(map);
+
+                // Adjust the map view to fit the GeoJSON layer
+                const bounds = L.geoJSON(data).getBounds();
+                map.fitBounds(bounds);
+            })
+            .catch(error => {
+                console.error("Error loading GeoJSON:", error);
+            });
+    </script>
+</body>
+</html>
